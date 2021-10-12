@@ -1,37 +1,41 @@
 #if !defined(__PL0_LEXER_H__)
 #define __PL0_LEXER_H__
 
-#include <iostream>
+#include <istream>
 #include <fstream>
+#include <strstream>
+#include <memory>
 #include <list>
-#include "token.h"
 
+class Token;
 class Lexer
 {
 private:
-    std::istream raw_stream;
+    std::unique_ptr<std::istream> raw_stream;
     std::list<Token> token_stream;
 
 public:
-    Lexer(const string &filename)
-    {
-        std::ifstream fin;
-        fin.open(filename, ios::in);
-        raw_stream = fin;
-    }
-    Lexer(istream &in) : raw_stream(in)
+    Lexer(const std::string &filename) : raw_stream(std::make_unique<>() std::ifstream(filename, std::ios::in))
     {
         tokenization();
-    }
+    };
+    // Lexer(std::ifstream &in) : raw_stream(std::ifstream(in))
+    // {
+    //     tokenization();
+    // }
+    // Lexer(std::strstream &in) : raw_stream(std::strstream(in))
+    // {
+    //     tokenization();
+    // }
 
-    ~Lexer()
-    {
-        if (raw_stream)
-        {
-            close(raw_stream);
-        }
-    }
+    ~Lexer() = default;
 
     void tokenization();
-}
+
+private:
+    Token getWord();
+    Token getNumber();
+    Token getSymbol();
+};
+
 #endif // __PL0_LEXER_H__

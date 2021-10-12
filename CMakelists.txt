@@ -1,0 +1,11 @@
+cmake_minimum_required(VERSION 3.0)
+
+project(pl0-lang)
+
+set(CXX_STANDARD 11)
+
+include_directories(include)
+
+aux_source_directory(src SRC)
+
+add_library(plang STATIC ${SRC})

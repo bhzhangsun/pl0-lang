@@ -1,6 +1,12 @@
 {
     "files.associations": {
+        "*.cjson": "jsonc",
+        "*.wxss": "css",
+        "*.wxs": "javascript",
         "list": "cpp",
-        "istream": "cpp"
-    }
+        "istream": "cpp",
+        "cctype": "cpp",
+        "iosfwd": "cpp"
+    },
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
 }

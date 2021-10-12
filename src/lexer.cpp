@@ -1,7 +1,18 @@
-#include <ctype.h>
+#include <cctype>
+#include "token.h"
 #include "lexer.h"
 
-bool issymbol(char _c)
+Token Lexer::getNumber()
+{
+    Token t("", 3);
+    return t;
+}
+
+Token Lexer::getSymbol()
+{
+}
+
+Token Lexer::getWord()
 {
 }
 
