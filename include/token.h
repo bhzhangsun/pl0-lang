@@ -1,18 +1,67 @@
+/*
+ * @Author: zhangsunbaohong
+ * @Email: zhangsunbaohong@163.com
+ * @Date: 2021-10-12 07:59:47
+ * @LastEditTime: 2021-10-21 09:00:14
+ * @Description: Token类，表示词法单元
+ */
 #if !defined(__PL0_TOKEN_H__)
 #define __PL0_TOKEN_H__
 
 #include <string>
 
-class Token
-{
-private:
-    std::string value;
-    // type
-    size_t line;
-
-public:
-    Token(const std::string &str, size_t ln) : value(str), line(ln){};
-    ~Token() = default;
+/**
+ * @description: Tag 枚举类型，词元的类型
+ */
+enum Tag {
+  SYMBOL_COMMA = 0,  // ,
+  SYMBOL_DOT,        // .
+  SYMBOL_SEMI,       // ;
+  SYMBOL_BECOME,     // :=
+  SYMBOL_ADD,        // +
+  SYMBOL_SUB,        // -
+  SYMBOL_MUL,        // *
+  SYMBOL_DIV,        // /
+  SYMBOL_LPARENT,    // (
+  SYMBOL_RPARENT,    // )
+  SYMBOL_EQ,         // =
+  SYMBOL_NEQ,        // #
+  SYMBOL_LE,         // <
+  SYMBOL_LEQ,        // <=
+  SYMBOL_GT,         // >
+  SYMBOL_GEQ,        // >=
+  SYMBOL_ODD,        // odd
+  KEYWORD_CONST,     // const
+  KEYWORD_VAR,       // var
+  KEYWORD_PROC,      // procedure
+  KEYWORD_CALL,      // call
+  KEYWORD_BEGIN,     // begin
+  KEYWORD_END,       // end
+  KEYWORD_IF,        // if
+  KEYWORD_THEN,      // then
+  KEYWORD_WHILE,     // while
+  KEYWORD_DO,        // do
+  STATIC_NUM,        // 静态符号个数
+  NUMBER,            // 数字
+  IDENTIFIER         // 标识符
 };
 
-#endif // __PL0_TOKEN_H__
+/**
+ * @description: Token类，基础词法单元
+ */
+struct Token {
+  std::string value;
+  Tag type;
+  size_t line;
+
+  Token(const std::string &str) : value(str), line(0) { GetType(); };
+  Token(const std::string &str, size_t ln) : value(str), line(ln) {
+    GetType();
+  };
+  ~Token() = default;
+
+ private:
+  void GetType();
+};
+
+#endif  // __PL0_TOKEN_H__

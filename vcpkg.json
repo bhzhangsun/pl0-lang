@@ -1,0 +1,7 @@
+{
+    "name": "pl0-lang",
+    "version-string": "0.1.0",
+    "dependencies": [
+        "catch2"
+    ]
+}
