@@ -2,7 +2,7 @@
  * @Author: zhangsunbaohong
  * @Email: zhangsunbaohong@163.com
  * @Date: 2021-10-12 07:59:47
- * @LastEditTime: 2021-10-19 23:30:22
+ * @LastEditTime: 2021-10-21 22:05:31
  * @Description: Lexer解析器的实现
  */
 #include "lexer.h"
@@ -17,7 +17,6 @@
 #include "word_recognizer.h"
 
 void Lexer::Tokenization() {
-  std::cout << "start !!" << std::endl;
   while (raw_stream_->peek() != EOF) {
     try {
       char c = raw_stream_->peek();
@@ -25,10 +24,10 @@ void Lexer::Tokenization() {
       SymbolRecognizer symbol(raw_stream_);
       WordRecognizer word(raw_stream_);
 
-      std::cout << "curr char:" << int(c) << std::endl;
+      // white char
       if (c == ' ' || c == '\t' || c == '\r') {
         raw_stream_->get();
-      } else if (c == '\n') {
+      } else if (c == '\n') {  // 换行
         raw_stream_->get();
         num_line_++;
       } else if (number.Match()) {

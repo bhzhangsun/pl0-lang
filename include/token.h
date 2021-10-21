@@ -2,12 +2,13 @@
  * @Author: zhangsunbaohong
  * @Email: zhangsunbaohong@163.com
  * @Date: 2021-10-12 07:59:47
- * @LastEditTime: 2021-10-21 09:00:14
+ * @LastEditTime: 2021-10-21 22:03:35
  * @Description: Token类，表示词法单元
  */
 #if !defined(__PL0_TOKEN_H__)
 #define __PL0_TOKEN_H__
 
+#include <iostream>
 #include <string>
 
 /**
@@ -59,6 +60,8 @@ struct Token {
     GetType();
   };
   ~Token() = default;
+
+  friend std::ostream &operator<<(std::ostream &out, const Token &t);
 
  private:
   void GetType();

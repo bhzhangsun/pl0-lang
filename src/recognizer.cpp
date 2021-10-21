@@ -2,7 +2,7 @@
  * @Author: zhangsunbaohong
  * @Email: zhangsunbaohong@163.com
  * @Date: 2021-10-19 22:50:20
- * @LastEditTime: 2021-10-21 08:57:01
+ * @LastEditTime: 2021-10-21 22:08:00
  * @Description:
  */
 
@@ -58,7 +58,6 @@ Token NumberRecognizer::Consumer(size_t line) {
     str += c;
     raw_stream_->get();
     c = raw_stream_->peek();
-    std::cout << "while:" << str.length() << " c:" << int(c) << std::endl;
   } while (c == '.' ||
            (!iswhite(c) && c != '\n' && !istag(c) && !raw_stream_->eof()));
 

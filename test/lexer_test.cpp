@@ -2,7 +2,7 @@
  * @Author: zhangsunbaohong
  * @Email: zhangsunbaohong@163.com
  * @Date: 2021-10-12 22:48:12
- * @LastEditTime: 2021-10-14 21:48:43
+ * @LastEditTime: 2021-10-21 22:56:57
  * @Description: Lexer 单元测试
  */
 #define CATCH_CONFIG_MAIN
@@ -14,22 +14,23 @@
 
 #include "catch.hpp"
 
-int test() {
-  Lexer lex("../test/testdata.pl0");
-  std::regex num_pattern("^([1-9]\\d*|0)(.\\d\\d*)?$");
+int test_lexer() {
+  Lexer lex("../examples/square.pl0");
+  std::list<Token> stream = lex.token_stream();
 
-  //   std::cout << "start!" << std::endl;
-  //   std::string content;
-  //   std::fstream fin;
-  //   fin.open("../test/testdata.pl0", std::ios::in);
-  //   fin >> content;
-  //   std::cout << "end: " << content << std::endl;
-  return 15;
+  for (Token t : stream) {
+    std::cout << t;
+  }
+  return stream.size();
 }
 
-TEST_CASE("Lexer tokenrization", "[short]") {
-  //   raw_stream->getline(content, 100);
-  //   std::cout << content << std::endl;
-  //   Lexer lex("test/testdata.pl0");
-  REQUIRE(test() == 15);
+int test_content_lexer() {
+  Lexer lex("faaa = 3.14f", Lexer::MODE_CONTENT);
+  std::list<Token> stream = lex.token_stream();
+  return stream.size();
+}
+
+TEST_CASE("Lexer", "[short]") {
+  REQUIRE(test_lexer() == 41);
+  REQUIRE(test_content_lexer() == 2);
 }
