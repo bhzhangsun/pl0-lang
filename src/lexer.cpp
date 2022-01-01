@@ -2,7 +2,7 @@
  * @Author: zhangsunbaohong
  * @Email: zhangsunbaohong@163.com
  * @Date: 2021-10-12 07:59:47
- * @LastEditTime: 2021-10-21 22:05:31
+ * @LastEditTime: 2021-12-30 08:42:09
  * @Description: Lexer解析器的实现
  */
 #include "lexer.h"
@@ -11,6 +11,7 @@
 #include <iostream>
 #include <regex>
 
+#include "error.h"
 #include "number_recognizer.h"
 #include "symbol_recognizer.h"
 #include "token.h"
@@ -37,11 +38,11 @@ void Lexer::Tokenization() {
       } else if (symbol.Match()) {
         token_stream_.push_back(symbol.Consumer(num_line_));
       } else {
-        std::cout << "未识别的字符：" << c << std::endl;
         raw_stream_->get();
+        throw Error(ERRNO::ERRNO_EXECPTION_TOKEN, num_line_, std::string(1, c));
       }
-    } catch (const std::string& str) {
-      std::cerr << str << '\n';
+    } catch (const Error& e) {
+      std::cerr << e.what() << std::endl;
     }
   }
 }

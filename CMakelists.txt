@@ -1,24 +1,23 @@
 cmake_minimum_required(VERSION 3.0)
 
-set(CMAKE_TOOLCHAIN_FILE $ENV{VCPKG_HOME}/scripts/buildsystems/vcpkg.cmake)
+# set(CMAKE_TOOLCHAIN_FILE $ENV{VCPKG_HOME}/scripts/buildsystems/vcpkg.cmake)
 project(pl0-lang)
 
 # find_path(CATCH_INCLUDE_DIR catch.hpp)
 # include_directories(${CATCH_INCLUDE_DIR})
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 
 include_directories(include)
 aux_source_directory(src SRC)
 add_library(plang STATIC ${SRC})
 
-find_package(Catch2 CONFIG REQUIRED)
-add_executable(cpp_test test/lexer_test.cpp ${SRC})
-target_link_libraries(cpp_test PRIVATE Catch2::Catch2)
-enable_testing()
+find_package(LLVM CONFIG REQUIRED)
+include_directories(${LLVM_INCLUDE_DIRS})
 
-add_test(
-  NAME catch_test
-  COMMAND $<TARGET_FILE:cpp_test> --success
-)
+add_subdirectory(example)
+
+find_package(Catch2 CONFIG REQUIRED)
+enable_testing()
+add_subdirectory(test)
 

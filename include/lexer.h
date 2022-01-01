@@ -2,7 +2,7 @@
  * @Author: zhangsunbaohong
  * @Email: zhangsunbaohong@163.com
  * @Date: 2021-10-12 07:59:47
- * @LastEditTime: 2021-10-21 22:53:13
+ * @LastEditTime: 2021-12-30 08:59:09
  * @Description: Lexer词法分析器
  */
 #if !defined(__PL0_LEXER_H__)
@@ -20,7 +20,7 @@ class Lexer {
  private:
   std::shared_ptr<std::istream> raw_stream_;
   std::list<Token> token_stream_;
-  std::size_t num_line_ = 0;
+  std::size_t num_line_ = 1;
 
  public:
   // 构造函数方式，内部类型
@@ -34,9 +34,8 @@ class Lexer {
     } else {
       raw_stream_.reset(new std::ifstream(str, std::ios::in));
     }
-    Tokenization();
   };
-  Lexer(std::string &in) : raw_stream_() { Tokenization(); }
+  Lexer(std::string &in) : raw_stream_() {}
 
   ~Lexer() = default;
   std::list<Token> &token_stream() { return token_stream_; }

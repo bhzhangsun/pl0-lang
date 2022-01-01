@@ -2,7 +2,7 @@
  * @Author: zhangsunbaohong
  * @Email: zhangsunbaohong@163.com
  * @Date: 2021-10-12 07:59:47
- * @LastEditTime: 2021-10-21 22:03:35
+ * @LastEditTime: 2021-12-13 22:38:26
  * @Description: Token类，表示词法单元
  */
 #if !defined(__PL0_TOKEN_H__)
@@ -15,9 +15,12 @@
  * @description: Tag 枚举类型，词元的类型
  */
 enum Tag {
+  PESUDO = -1,       // 伪标签
   SYMBOL_COMMA = 0,  // ,
   SYMBOL_DOT,        // .
   SYMBOL_SEMI,       // ;
+  SYMBOL_QUES,       // ?  输入
+  SYMBOL_EXCL,       // !  输出
   SYMBOL_BECOME,     // :=
   SYMBOL_ADD,        // +
   SYMBOL_SUB,        // -
@@ -44,7 +47,7 @@ enum Tag {
   KEYWORD_DO,        // do
   STATIC_NUM,        // 静态符号个数
   NUMBER,            // 数字
-  IDENTIFIER         // 标识符
+  IDENTIFIER,        // 标识符
 };
 
 /**
@@ -60,7 +63,7 @@ struct Token {
     GetType();
   };
   ~Token() = default;
-
+  operator bool();
   friend std::ostream &operator<<(std::ostream &out, const Token &t);
 
  private:

@@ -2,7 +2,7 @@
  * @Author: zhangsunbaohong
  * @Email: zhangsunbaohong@163.com
  * @Date: 2021-10-19 22:50:20
- * @LastEditTime: 2021-10-21 22:08:00
+ * @LastEditTime: 2021-12-30 08:57:46
  * @Description:
  */
 
@@ -10,6 +10,7 @@
 #include <iostream>
 #include <regex>
 
+#include "error.h"
 #include "number_recognizer.h"
 #include "symbol_recognizer.h"
 #include "word_recognizer.h"
@@ -63,10 +64,9 @@ Token NumberRecognizer::Consumer(size_t line) {
 
   if (std::regex_match(str, num_pattern)) {
     return Token(str, line);
-  } else {
-    std::cout << "未识别的token：" << str << std::endl;
-    throw "未识别的token " + str;
   }
+
+  throw Error(ERRNO::ERRNO_EXECPTION_NUMBER, line, str);
 }
 
 /**
@@ -118,14 +118,10 @@ Token SymbolRecognizer::Consumer(size_t line) {
         str += c;
         raw_stream_->get();
         break;
-      } else {
-        std::cout << "未识别的token：" << str + c << std::endl;
-        throw "未识别的token " + str;
       }
-
+      // else fall into default
     default:
-      std::cout << "未识别的token：" << str + c << std::endl;
-      throw "未识别的token " + str;
+      throw Error(ERRNO::ERRNO_EXECPTION_SYMBOL, line, str);
   }
   return Token(str, line);
 }
@@ -150,8 +146,6 @@ Token WordRecognizer::Consumer(size_t line) {
 
   if (std::regex_match(str, word_pattern)) {
     return Token(str, line);
-  } else {
-    std::cout << "未识别的token：" << str << std::endl;
-    throw "未识别的token " + str;
   }
+  throw Error(ERRNO::ERRNO_EXECPTION_WORD, line, str);
 }
