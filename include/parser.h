@@ -2,7 +2,7 @@
  * @Author: zhangsunbaohong
  * @Email: zhangsunbaohong@163.com
  * @Date: 2021-10-22 08:21:23
- * @LastEditTime: 2021-12-09 22:21:32
+ * @LastEditTime: 2022-01-23 10:00:55
  * @Description:
  */
 
@@ -12,29 +12,42 @@
 #include <list>
 #include <memory>
 
+#include "error.h"
 #include "expr_ast.h"
-#include "token.h"
+#include "lexer.h"
 
 class Parser {
  public:
-  typedef std::list<Token> token_buffer;
-  typedef std::list<Token>::iterator token_iterator;
+  typedef Lexer::token_buffer token_buffer;
+  typedef Lexer::token_iterator token_iterator;
 
  private:
-  token_buffer token_stream_;
-  token_iterator current_;
+  Lexer lex_;
   std::shared_ptr<ExprAst> root_;
 
+  std::list<Error> errors_;
+
+ public:
+  Parser(const Lexer& lex) : lex_(lex) {}
+  bool Parsing();
+
+ private:
   std::shared_ptr<ExprAst> ParseBlock();
   std::shared_ptr<ExprAst> ParseConstDefine();
   std::shared_ptr<ExprAst> ParseVarDefine();
   std::shared_ptr<ExprAst> ParseFuncDefine();
   std::shared_ptr<ExprAst> ParseStatment();
-
- public:
-  Parser(const std::list<Token>& tokens)
-      : token_stream_(tokens), current_(token_stream_.begin()) {}
-  void Parsing();
+  std::shared_ptr<ExprAst> ParseAssignment();
+  std::shared_ptr<ExprAst> ParseFuncCall();
+  std::shared_ptr<ExprAst> ParseScan();
+  std::shared_ptr<ExprAst> ParsePrint();
+  std::shared_ptr<ExprAst> ParseScope();
+  std::shared_ptr<ExprAst> ParseIf();
+  std::shared_ptr<ExprAst> ParseWhile();
+  std::shared_ptr<ExprAst> ParseCondition();
+  std::shared_ptr<ExprAst> ParseExprssion();
+  std::shared_ptr<ExprAst> ParseTerm();
+  std::shared_ptr<ExprAst> ParseFactor();
 };
 
 #endif  // __PL0_PARSER_H__

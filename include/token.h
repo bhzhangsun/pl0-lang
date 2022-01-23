@@ -2,7 +2,7 @@
  * @Author: zhangsunbaohong
  * @Email: zhangsunbaohong@163.com
  * @Date: 2021-10-12 07:59:47
- * @LastEditTime: 2021-12-13 22:38:26
+ * @LastEditTime: 2022-01-22 23:46:55
  * @Description: Token类，表示词法单元
  */
 #if !defined(__PL0_TOKEN_H__)
@@ -15,7 +15,6 @@
  * @description: Tag 枚举类型，词元的类型
  */
 enum Tag {
-  PESUDO = -1,       // 伪标签
   SYMBOL_COMMA = 0,  // ,
   SYMBOL_DOT,        // .
   SYMBOL_SEMI,       // ;
@@ -48,6 +47,7 @@ enum Tag {
   STATIC_NUM,        // 静态符号个数
   NUMBER,            // 数字
   IDENTIFIER,        // 标识符
+  PESUDO,            // 伪标签
 };
 
 /**

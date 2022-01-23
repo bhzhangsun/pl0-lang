@@ -2,7 +2,7 @@
  * @Author: zhangsunbaohong
  * @Email: zhangsunbaohong@163.com
  * @Date: 2021-10-12 07:59:47
- * @LastEditTime: 2021-12-30 08:42:09
+ * @LastEditTime: 2022-01-22 18:29:11
  * @Description: Lexer解析器的实现
  */
 #include "lexer.h"
@@ -17,7 +17,8 @@
 #include "token.h"
 #include "word_recognizer.h"
 
-void Lexer::Tokenization() {
+bool Lexer::Tokenization() {
+  bool succ = true;
   while (raw_stream_->peek() != EOF) {
     try {
       char c = raw_stream_->peek();
@@ -39,10 +40,28 @@ void Lexer::Tokenization() {
         token_stream_.push_back(symbol.Consumer(num_line_));
       } else {
         raw_stream_->get();
-        throw Error(ERRNO::ERRNO_EXECPTION_TOKEN, num_line_, std::string(1, c));
+        throw Error(ERRNO::ERRNO_UNRECOGNIZE_TOKEN, num_line_,
+                    std::string(1, c));
       }
     } catch (const Error& e) {
       std::cerr << e.what() << std::endl;
+      succ = false;
     }
   }
+  itor_ = token_stream_.begin();
+  return succ;
 }
+
+/**
+ * @description: next迭代器函数
+ * @param {*}
+ * @return {*} 返回当前位置的迭代器，将迭代器移到下一位置
+ */
+
+Lexer::const_token_iterator Lexer::next() {
+  if (itor_ == token_stream_.end()) {
+    return itor_;
+  }
+
+  return itor_++;
+};

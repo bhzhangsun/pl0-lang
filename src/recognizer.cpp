@@ -2,7 +2,7 @@
  * @Author: zhangsunbaohong
  * @Email: zhangsunbaohong@163.com
  * @Date: 2021-10-19 22:50:20
- * @LastEditTime: 2021-12-30 08:57:46
+ * @LastEditTime: 2022-01-05 09:23:32
  * @Description:
  */
 
@@ -66,7 +66,7 @@ Token NumberRecognizer::Consumer(size_t line) {
     return Token(str, line);
   }
 
-  throw Error(ERRNO::ERRNO_EXECPTION_NUMBER, line, str);
+  throw Error(ERRNO::ERRNO_UNRECOGNIZE_NUMBER, line, str);
 }
 
 /**
@@ -121,7 +121,7 @@ Token SymbolRecognizer::Consumer(size_t line) {
       }
       // else fall into default
     default:
-      throw Error(ERRNO::ERRNO_EXECPTION_SYMBOL, line, str);
+      throw Error(ERRNO::ERRNO_UNRECOGNIZE_SYMBOL, line, str);
   }
   return Token(str, line);
 }
@@ -147,5 +147,5 @@ Token WordRecognizer::Consumer(size_t line) {
   if (std::regex_match(str, word_pattern)) {
     return Token(str, line);
   }
-  throw Error(ERRNO::ERRNO_EXECPTION_WORD, line, str);
+  throw Error(ERRNO::ERRNO_UNRECOGNIZE_WORD, line, str);
 }

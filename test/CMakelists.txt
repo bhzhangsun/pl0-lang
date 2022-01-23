@@ -2,7 +2,15 @@
 add_executable(lexer_test lexer_test.cpp)
 target_link_libraries(lexer_test Catch2::Catch2 plang)
 add_test(
-  NAME catch_test
+  NAME lexer_test
   COMMAND $<TARGET_FILE:lexer_test> --success
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+add_executable(parser_test parser_test.cpp)
+target_link_libraries(parser_test Catch2::Catch2 plang)
+add_test(
+  NAME parser_test
+  COMMAND $<TARGET_FILE:parser_test> --success
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )

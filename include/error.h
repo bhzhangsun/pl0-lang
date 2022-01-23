@@ -2,19 +2,31 @@
  * @Author: zhangsunbaohong
  * @Email: zhangsunbaohong@163.com
  * @Date: 2021-12-26 17:25:05
- * @LastEditTime: 2021-12-30 09:00:43
+ * @LastEditTime: 2022-01-23 09:46:30
  * @Description: Error 类，使用异常抛出
  */
+
+#if !defined(__PL0_ERROR_H__)
+#define __PL0_ERROR_H__
 
 #include <array>
 #include <string>
 
 enum ERRNO : size_t {
   ERRNO_SUCCESS = 0,
-  ERRNO_EXECPTION_TOKEN,
-  ERRNO_EXECPTION_NUMBER,
-  ERRNO_EXECPTION_SYMBOL,
-  ERRNO_EXECPTION_WORD,
+  ERRNO_NOTFOND_MODULE_END,
+  ERRNO_UNRECOGNIZE_TOKEN,
+  ERRNO_UNRECOGNIZE_NUMBER,
+  ERRNO_UNRECOGNIZE_SYMBOL,
+  ERRNO_UNRECOGNIZE_WORD,
+  ERRNO_UNRECOGNIZE_IDENTITY,
+  ERRNO_REQUIRE_EQ,
+  ERRNO_REQUIRE_NUMBER,
+  ERRNO_REQUIRE_IDENTITY,
+  ERRNO_REQUIRE_COMMA,
+  ERRNO_REQUIRE_SEMI,
+  ERRNO_REQUIRE_BECOME,
+  ERRNO_UNEXPECTED_SYMBOL_TYPE,
   ERRNO_SIZE
 };
 
@@ -42,4 +54,7 @@ class Error : public std::exception {
   const char* what() const noexcept override;
 
   static Error Success();
+  friend std::ostream& operator<<(std::ostream& out, const Error& e);
 };
+
+#endif  // __PL0_ERROR_H__
