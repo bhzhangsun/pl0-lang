@@ -2,7 +2,7 @@
  * @Author: zhangsunbaohong
  * @Email: zhangsunbaohong@163.com
  * @Date: 2021-10-12 07:59:47
- * @LastEditTime: 2022-01-22 18:29:11
+ * @LastEditTime: 2022-01-26 08:30:40
  * @Description: Lexer解析器的实现
  */
 #include "lexer.h"
@@ -58,10 +58,9 @@ bool Lexer::Tokenization() {
  * @return {*} 返回当前位置的迭代器，将迭代器移到下一位置
  */
 
-Lexer::const_token_iterator Lexer::next() {
+Lexer::token_iterator Lexer::next() {
   if (itor_ == token_stream_.end()) {
-    return itor_;
+    return token_stream_.end();
   }
-
   return itor_++;
 };

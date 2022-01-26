@@ -2,7 +2,7 @@
  * @Author: zhangsunbaohong
  * @Email: zhangsunbaohong@163.com
  * @Date: 2021-10-12 07:59:47
- * @LastEditTime: 2021-12-26 10:38:27
+ * @LastEditTime: 2022-01-25 09:23:14
  * @Description:
 -->
 
@@ -23,7 +23,7 @@ program = block "." ;
 
 block = [ "const" ident "=" number {"," ident "=" number} ";"]
         [ "var" ident {"," ident} ";"]
-        { "procedure" ident ";" block ";" } statement ;
+        { "procedure" ident ";" block ";" } statement;
 
 statement = [ ident ":=" expression | "call" ident
               | "?" ident | "!" expression

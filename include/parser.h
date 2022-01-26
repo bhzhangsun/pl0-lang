@@ -2,7 +2,7 @@
  * @Author: zhangsunbaohong
  * @Email: zhangsunbaohong@163.com
  * @Date: 2021-10-22 08:21:23
- * @LastEditTime: 2022-01-23 10:00:55
+ * @LastEditTime: 2022-01-26 21:25:44
  * @Description:
  */
 
@@ -22,13 +22,12 @@ class Parser {
   typedef Lexer::token_iterator token_iterator;
 
  private:
-  Lexer lex_;
   std::shared_ptr<ExprAst> root_;
-
+  Lexer& lex_;
   std::list<Error> errors_;
 
  public:
-  Parser(const Lexer& lex) : lex_(lex) {}
+  Parser(Lexer& lex) : lex_(lex) {}
   bool Parsing();
 
  private:
@@ -48,6 +47,8 @@ class Parser {
   std::shared_ptr<ExprAst> ParseExprssion();
   std::shared_ptr<ExprAst> ParseTerm();
   std::shared_ptr<ExprAst> ParseFactor();
+
+  void NoAvailableToken();
 };
 
 #endif  // __PL0_PARSER_H__

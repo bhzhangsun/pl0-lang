@@ -2,7 +2,7 @@
  * @Author: zhangsunbaohong
  * @Email: zhangsunbaohong@163.com
  * @Date: 2021-12-26 17:25:05
- * @LastEditTime: 2022-01-23 09:46:30
+ * @LastEditTime: 2022-01-26 21:23:36
  * @Description: Error 类，使用异常抛出
  */
 
@@ -26,7 +26,11 @@ enum ERRNO : size_t {
   ERRNO_REQUIRE_COMMA,
   ERRNO_REQUIRE_SEMI,
   ERRNO_REQUIRE_BECOME,
+  ERRNO_REQUIRE_END,
+  ERRNO_REQUIRE_THEN,
+  ERRNO_REQUIRE_DO,
   ERRNO_UNEXPECTED_SYMBOL_TYPE,
+  ERRNO_NO_AVAILABLE_TOKEN,
   ERRNO_SIZE
 };
 

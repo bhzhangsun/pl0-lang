@@ -2,7 +2,7 @@
  * @Author: zhangsunbaohong
  * @Email: zhangsunbaohong@163.com
  * @Date: 2021-12-28 09:25:08
- * @LastEditTime: 2022-01-23 08:42:00
+ * @LastEditTime: 2022-01-26 21:23:26
  * @Description: Error的实现
  */
 
@@ -26,7 +26,11 @@ const std::array<std::string, ERRNO_SIZE> Error::message_map_ = {
     "应该为','",
     "应该为';'",
     "应该为':='",
-    "出现意外的符号类型"};
+    "应该为'end'",
+    "应该为'then'",
+    "应该为'do'",
+    "出现意外的符号类型",
+    "没有可用的Token"};
 
 Error Error::Success() { return Error(3); }
 

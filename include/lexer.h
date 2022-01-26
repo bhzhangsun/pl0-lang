@@ -2,7 +2,7 @@
  * @Author: zhangsunbaohong
  * @Email: zhangsunbaohong@163.com
  * @Date: 2021-10-12 07:59:47
- * @LastEditTime: 2022-01-17 22:13:13
+ * @LastEditTime: 2022-01-26 08:30:29
  * @Description: Lexer词法分析器
  */
 #if !defined(__PL0_LEXER_H__)
@@ -22,7 +22,6 @@ class Lexer {
   typedef enum { MODE_CONTENT = 0, MODE_FILENAME } constructor_mode;
   typedef std::list<Token> token_buffer;
   typedef typename std::list<Token>::iterator token_iterator;
-  typedef const typename std::list<Token>::iterator const_token_iterator;
 
  private:
   std::shared_ptr<std::istream> raw_stream_;
@@ -48,9 +47,9 @@ class Lexer {
 
   bool Tokenization();
 
-  const_token_iterator next();
-  const_token_iterator peek() { return itor_; }
-  bool eof(const_token_iterator itor) { return itor == token_stream_.end(); }
+  token_iterator next();
+  token_iterator peek() { return itor_; }
+  bool eof(token_iterator itor) { return itor == token_stream_.end(); }
 };
 
 #endif  // __PL0_LEXER_H__

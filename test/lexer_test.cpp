@@ -2,7 +2,7 @@
  * @Author: zhangsunbaohong
  * @Email: zhangsunbaohong@163.com
  * @Date: 2021-10-12 22:48:12
- * @LastEditTime: 2021-12-30 09:04:01
+ * @LastEditTime: 2022-01-23 18:52:25
  * @Description: Lexer 单元测试
  */
 #define CATCH_CONFIG_MAIN
@@ -25,10 +25,6 @@ int test_lexer() {
   Lexer lex("../resource/square.pl0");
   lex.Tokenization();
   std::list<Token> stream = lex.token_stream();
-
-  for (Token t : stream) {
-    std::cout << t;
-  }
   return stream.size();
 }
 
