@@ -2,7 +2,7 @@
  * @Author: zhangsunbaohong
  * @Email: zhangsunbaohong@163.com
  * @Date: 2021-12-08 09:18:11
- * @LastEditTime: 2022-01-26 21:24:13
+ * @LastEditTime: 2022-02-10 09:08:49
  * @Description: Parser 语法解析器
  */
 
@@ -46,8 +46,8 @@ bool Parser::Parsing() {
  * @return {*} AST节点指针
  */
 std::shared_ptr<ExprAst> Parser::ParseBlock() {
-  std::unique_ptr<CommonAst> block_ptr =
-      std::make_unique<CommonAst>(Tag::PESUDO);
+  std::unique_ptr<PesudoExpr> block_ptr = std::make_unique<PesudoExpr>();
+
   // 处每次以;作为一个单元外，若开始的符号是DOT则认为是程序结尾
 
   Lexer::token_iterator current = lex_.peek();
@@ -74,8 +74,7 @@ std::shared_ptr<ExprAst> Parser::ParseBlock() {
  * @return {*}
  */
 std::shared_ptr<ExprAst> Parser::ParseConstDefine() {
-  std::unique_ptr<CommonAst> const_ptr =
-      std::make_unique<CommonAst>(Tag::KEYWORD_CONST);
+  std::unique_ptr<ConstExpr> const_ptr = std::make_unique<ConstExpr>();
   Lexer::token_iterator current = lex_.next();  // const
   bool first = true;
   do {
@@ -100,11 +99,7 @@ std::shared_ptr<ExprAst> Parser::ParseConstDefine() {
       errors_.push_back(
           Error(ERRNO::ERRNO_REQUIRE_NUMBER, ident->line, eq->value));
     } else {
-      std::unique_ptr<CommonAst> temp_ptr =
-          std::make_unique<CommonAst>(Tag::SYMBOL_EQ);
-      temp_ptr->AddChild(std::make_unique<ValueAst>(*ident));
-      temp_ptr->AddChild(std::make_unique<ValueAst>(*val));
-      const_ptr->AddChild(std::move(temp_ptr));
+      const_ptr->AddConstant(ident->value, std::stod(val->value));
     }
 
   } while (!lex_.eof(lex_.peek()) && lex_.peek()->type != Tag::SYMBOL_SEMI);
@@ -123,9 +118,8 @@ std::shared_ptr<ExprAst> Parser::ParseConstDefine() {
  * @return {*}
  */
 std::shared_ptr<ExprAst> Parser::ParseVarDefine() {
-  std::unique_ptr<CommonAst> var_ptr =
-      std::make_unique<CommonAst>(Tag::KEYWORD_VAR);
-  Lexer::token_iterator current = lex_.next();  // const
+  std::unique_ptr<VariableExpr> var_ptr = std::make_unique<VariableExpr>();
+  Lexer::token_iterator current = lex_.next();  // var
   bool first = true;
   do {
     // 消除分割符,
@@ -142,7 +136,7 @@ std::shared_ptr<ExprAst> Parser::ParseVarDefine() {
       errors_.push_back(
           Error(ERRNO::ERRNO_REQUIRE_IDENTITY, ident->line, ident->value));
     } else {
-      var_ptr->AddChild(std::make_unique<ValueAst>(*ident));
+      var_ptr->AddVariant(ident->value);
     }
   } while (!lex_.eof(lex_.peek()) && lex_.peek()->type != Tag::SYMBOL_SEMI);
   if (lex_.eof(lex_.peek())) {
@@ -159,8 +153,7 @@ std::shared_ptr<ExprAst> Parser::ParseVarDefine() {
  * @return {*} 返回AST节点
  */
 std::shared_ptr<ExprAst> Parser::ParseFuncDefine() {
-  std::unique_ptr<CommonAst> func_ptr =
-      std::make_unique<CommonAst>(Tag::KEYWORD_PROC);
+  std::unique_ptr<FunctionExpr> func_ptr = nullptr;
   Lexer::token_iterator current = lex_.next();  // procedure
 
   auto ident = lex_.next();
@@ -181,8 +174,7 @@ std::shared_ptr<ExprAst> Parser::ParseFuncDefine() {
     errors_.push_back(
         Error(ERRNO::ERRNO_REQUIRE_SEMI, semi1->line, semi1->value));
   } else {
-    func_ptr->AddChild(std::make_unique<ValueAst>(*ident));
-    func_ptr->AddChild(block_ptr);
+    func_ptr = std::make_unique<FunctionExpr>(ident->value, block_ptr);
   }
 
   return func_ptr;
@@ -227,8 +219,7 @@ std::shared_ptr<ExprAst> Parser::ParseStatment() {
  * @return {*}
  */
 std::shared_ptr<ExprAst> Parser::ParseAssignment() {
-  std::unique_ptr<CommonAst> assign_ptr =
-      std::make_unique<CommonAst>(Tag::SYMBOL_BECOME);
+  std::unique_ptr<BinaryOpExpr> assign_ptr = nullptr;
 
   auto ident = lex_.next();
   auto become = lex_.next();
@@ -243,8 +234,10 @@ std::shared_ptr<ExprAst> Parser::ParseAssignment() {
     errors_.push_back(
         Error(ERRNO::ERRNO_REQUIRE_BECOME, ident->line, ident->value));
   } else {
-    assign_ptr->AddChild(std::make_unique<ValueAst>(*ident));
-    assign_ptr->AddChild(expr);
+    std::shared_ptr<NamedExpr> named_ptr =
+        std::make_shared<NamedExpr>(ident->value);
+    assign_ptr =
+        std::make_unique<BinaryOpExpr>(Tag::SYMBOL_BECOME, named_ptr, expr);
   }
   return assign_ptr;
 }
@@ -255,8 +248,7 @@ std::shared_ptr<ExprAst> Parser::ParseAssignment() {
  * @return {*}
  */
 std::shared_ptr<ExprAst> Parser::ParseFuncCall() {
-  std::unique_ptr<CommonAst> call_ptr =
-      std::make_unique<CommonAst>(Tag::KEYWORD_CALL);
+  std::unique_ptr<CallExpr> call_ptr = nullptr;
   Lexer::token_iterator current = lex_.next();  // call
 
   auto ident = lex_.next();
@@ -266,7 +258,7 @@ std::shared_ptr<ExprAst> Parser::ParseFuncCall() {
   } else if (ident->type != Tag::IDENTIFIER) {
     errors_.push_back(Error(ERRNO_REQUIRE_IDENTITY, ident->line, ident->value));
   } else {
-    call_ptr->AddChild(std::make_unique<ValueAst>(*ident));
+    call_ptr = std::make_unique<CallExpr>(ident->value);
   }
 
   return call_ptr;
@@ -278,8 +270,8 @@ std::shared_ptr<ExprAst> Parser::ParseFuncCall() {
  * @return {*}
  */
 std::shared_ptr<ExprAst> Parser::ParseScan() {
-  std::unique_ptr<CommonAst> in_ptr =
-      std::make_unique<CommonAst>(Tag::SYMBOL_QUES);
+  std::unique_ptr<ScanExpr> in_ptr = nullptr;
+
   Lexer::token_iterator current = lex_.next();  // ?
 
   auto ident = lex_.next();
@@ -288,7 +280,8 @@ std::shared_ptr<ExprAst> Parser::ParseScan() {
   } else if (ident->type != Tag::IDENTIFIER) {
     errors_.push_back(Error(ERRNO_REQUIRE_IDENTITY, ident->line, ident->value));
   } else {
-    in_ptr->AddChild(std::make_unique<ValueAst>(*ident));
+    in_ptr =
+        std::make_unique<ScanExpr>(std::make_unique<NamedExpr>(ident->value));
   }
   return in_ptr;
 }
@@ -299,11 +292,10 @@ std::shared_ptr<ExprAst> Parser::ParseScan() {
  * @return {*}
  */
 std::shared_ptr<ExprAst> Parser::ParsePrint() {
-  std::unique_ptr<CommonAst> out_ptr =
-      std::make_unique<CommonAst>(Tag::SYMBOL_EXCL);
   Lexer::token_iterator current = lex_.next();  // !
+  std::unique_ptr<PrintExpr> out_ptr =
+      std::make_unique<PrintExpr>(ParseExprssion());
 
-  out_ptr->AddChild(ParseExprssion());
   return out_ptr;
 }
 
@@ -313,8 +305,7 @@ std::shared_ptr<ExprAst> Parser::ParsePrint() {
  * @return {*}
  */
 std::shared_ptr<ExprAst> Parser::ParseScope() {
-  std::unique_ptr<CommonAst> scope_ptr =
-      std::make_unique<CommonAst>(Tag::KEYWORD_BEGIN);
+  std::unique_ptr<PesudoExpr> scope_ptr = std::make_unique<PesudoExpr>();
   Lexer::token_iterator current = lex_.next();  // begin
 
   bool first = true;
@@ -346,18 +337,19 @@ std::shared_ptr<ExprAst> Parser::ParseScope() {
  * @return {*}
  */
 std::shared_ptr<ExprAst> Parser::ParseIf() {
-  std::unique_ptr<CommonAst> if_ptr =
-      std::make_unique<CommonAst>(Tag::KEYWORD_IF);
+  std::unique_ptr<IfExpr> if_ptr = nullptr;
+
   Lexer::token_iterator current = lex_.next();  // if
 
-  if_ptr->AddChild(ParseCondition());
+  std::shared_ptr<ExprAst> cond_ptr = ParseCondition();
   auto then = lex_.next();
   if (lex_.eof(then)) {
     NoAvailableToken();
   } else if (then->type != KEYWORD_THEN) {  // then
     errors_.push_back(Error(ERRNO_REQUIRE_THEN, then->line, then->value));
   }
-  if_ptr->AddChild(ParseStatment());
+  std::shared_ptr<ExprAst> body_ptr = ParseStatment();
+  if_ptr = std::make_unique<IfExpr>(cond_ptr, body_ptr);
   return if_ptr;
 }
 
@@ -367,18 +359,19 @@ std::shared_ptr<ExprAst> Parser::ParseIf() {
  * @return {*}
  */
 std::shared_ptr<ExprAst> Parser::ParseWhile() {
-  std::unique_ptr<CommonAst> while_ptr =
-      std::make_unique<CommonAst>(Tag::KEYWORD_WHILE);
   Lexer::token_iterator current = lex_.next();  // while
 
-  while_ptr->AddChild(ParseCondition());
+  std::shared_ptr<ExprAst> cond_ptr = ParseCondition();
   auto doo = lex_.next();
   if (lex_.eof(doo)) {
     NoAvailableToken();
   } else if (doo->type != KEYWORD_DO) {  // do
     errors_.push_back(Error(ERRNO_REQUIRE_DO, doo->line, doo->value));
   }
-  while_ptr->AddChild(ParseStatment());
+  std::shared_ptr<ExprAst> body_ptr = ParseStatment();
+
+  std::unique_ptr<WhileExpr> while_ptr =
+      std::make_unique<WhileExpr>(cond_ptr, body_ptr);
   return while_ptr;
 }
 
@@ -388,17 +381,18 @@ std::shared_ptr<ExprAst> Parser::ParseWhile() {
  * @return {*}
  */
 std::shared_ptr<ExprAst> Parser::ParseCondition() {
-  std::unique_ptr<CommonAst> cond_ptr = std::make_unique<CommonAst>();
-  Lexer::token_iterator current = lex_.peek();  // while
+  std::unique_ptr<ExprAst> cond_ptr = nullptr;
+  Lexer::token_iterator current = lex_.peek();  // odd | expr cond expr
 
   if (!lex_.eof(current) && current->type == Tag::SYMBOL_ODD) {
-    cond_ptr->set_token_type(SYMBOL_ODD);
-    cond_ptr->AddChild(ParseExprssion());
+    lex_.next();
+    std::shared_ptr<ExprAst> expr_ptr = ParseExprssion();
+    cond_ptr = std::make_unique<OddExpr>(expr_ptr);
   } else {
-    cond_ptr->AddChild(ParseExprssion());
+    std::shared_ptr<ExprAst> lhs_ptr = ParseExprssion();
     auto op = lex_.next();
-    cond_ptr->set_token_type(op->type);
-    cond_ptr->AddChild(ParseExprssion());
+    std::shared_ptr<ExprAst> rhs_ptr = ParseExprssion();
+    cond_ptr = std::make_unique<BinaryOpExpr>(op->type, lhs_ptr, rhs_ptr);
   }
   return cond_ptr;
 }
@@ -415,20 +409,24 @@ std::shared_ptr<ExprAst> Parser::ParseExprssion() {
     auto op = lex_.peek();
     if (!lex_.eof(op) &&
         (op->type == Tag::SYMBOL_ADD || op->type == Tag::SYMBOL_SUB)) {
-      std::unique_ptr<CommonAst> temp_ptr =
-          std::make_unique<CommonAst>(op->type);
+      std::unique_ptr<BinaryOpExpr> temp_ptr = nullptr;
+      std::shared_ptr<ExprAst> lhs_ptr = nullptr;
+      std::shared_ptr<ExprAst> rhs_ptr = nullptr;
 
       if (first) {
-        temp_ptr->AddChild(std::make_unique<ValueAst>(Token("0")));
+        lhs_ptr = std::make_unique<NumberExpr>(0);
       } else {
-        temp_ptr->AddChild(root_ptr);
+        lhs_ptr = root_ptr;
       }
+
       lex_.next();  // +/-
-      temp_ptr->AddChild(ParseTerm());
+      rhs_ptr = ParseTerm();
+      temp_ptr = std::make_unique<BinaryOpExpr>(op->type, lhs_ptr, rhs_ptr);
       root_ptr = std::move(temp_ptr);
     } else {
       root_ptr = ParseTerm();
     }
+    first = false;
 
   } while (!lex_.eof(lex_.peek()) && (lex_.peek()->type == Tag::SYMBOL_ADD ||
                                       lex_.peek()->type == Tag::SYMBOL_SUB));
@@ -446,16 +444,14 @@ std::shared_ptr<ExprAst> Parser::ParseTerm() {
   do {
     if (first) {
       root_ptr = ParseFactor();
-      first = false;
     } else {
       auto op = lex_.next();
-      std::unique_ptr<CommonAst> temp_ptr =
-          std::make_unique<CommonAst>(op->type);
-      temp_ptr->AddChild(root_ptr);
-      temp_ptr->AddChild(ParseFactor());
+      std::shared_ptr<ExprAst> rhs_ptr = ParseFactor();
+      std::unique_ptr<BinaryOpExpr> temp_ptr =
+          std::make_unique<BinaryOpExpr>(op->type, root_ptr, rhs_ptr);
       root_ptr = std::move(temp_ptr);
     }
-
+    first = false;
   } while (!lex_.eof(lex_.peek()) && (lex_.peek()->type == Tag::SYMBOL_MUL ||
                                       lex_.peek()->type == Tag::SYMBOL_DIV));
   return root_ptr;
@@ -476,9 +472,9 @@ std::shared_ptr<ExprAst> Parser::ParseFactor() {
 
   switch (current->type) {
     case Tag::IDENTIFIER:
-      return std::make_unique<ValueAst>(*lex_.next());
+      return std::make_unique<NamedExpr>(lex_.next()->value);
     case Tag::NUMBER:
-      return std::make_unique<ValueAst>(*lex_.next());
+      return std::make_unique<NumberExpr>(lex_.next()->value);
     case Tag::SYMBOL_LPARENT: {
       lex_.next();  // (
       std::shared_ptr<ExprAst> root_ptr = ParseExprssion();
@@ -495,4 +491,13 @@ std::shared_ptr<ExprAst> Parser::ParseFactor() {
 void Parser::NoAvailableToken() {
   token_iterator tail = --(lex_.token_stream().end());
   errors_.push_back(Error(ERRNO::ERRNO_NO_AVAILABLE_TOKEN, tail->line, "EOF"));
+}
+
+bool Parser::Codegen() {
+  try {
+    root_->Codegen();
+  } catch (const std::exception& e) {
+    return false;
+  }
+  return true;
 }

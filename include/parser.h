@@ -2,7 +2,7 @@
  * @Author: zhangsunbaohong
  * @Email: zhangsunbaohong@163.com
  * @Date: 2021-10-22 08:21:23
- * @LastEditTime: 2022-01-26 21:25:44
+ * @LastEditTime: 2022-02-06 16:07:11
  * @Description:
  */
 
@@ -29,6 +29,7 @@ class Parser {
  public:
   Parser(Lexer& lex) : lex_(lex) {}
   bool Parsing();
+  bool Codegen();
 
  private:
   std::shared_ptr<ExprAst> ParseBlock();

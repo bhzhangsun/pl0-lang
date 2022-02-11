@@ -7,13 +7,13 @@ project(pl0-lang)
 # include_directories(${CATCH_INCLUDE_DIR})
 
 set(CMAKE_CXX_STANDARD 17)
+find_package(LLVM CONFIG REQUIRED)
+include_directories(${LLVM_INCLUDE_DIRS})
+
 
 include_directories(include)
 aux_source_directory(src SRC)
 add_library(plang STATIC ${SRC})
-
-find_package(LLVM CONFIG REQUIRED)
-include_directories(${LLVM_INCLUDE_DIRS})
 
 add_subdirectory(example)
 

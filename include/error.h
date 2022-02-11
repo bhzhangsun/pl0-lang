@@ -2,12 +2,14 @@
  * @Author: zhangsunbaohong
  * @Email: zhangsunbaohong@163.com
  * @Date: 2021-12-26 17:25:05
- * @LastEditTime: 2022-01-26 21:23:36
+ * @LastEditTime: 2022-02-07 21:13:33
  * @Description: Error 类，使用异常抛出
  */
 
 #if !defined(__PL0_ERROR_H__)
 #define __PL0_ERROR_H__
+
+#include <llvm/Support/raw_ostream.h>
 
 #include <array>
 #include <string>
@@ -31,6 +33,8 @@ enum ERRNO : size_t {
   ERRNO_REQUIRE_DO,
   ERRNO_UNEXPECTED_SYMBOL_TYPE,
   ERRNO_NO_AVAILABLE_TOKEN,
+  ERRNO_NOTFOUND_DEFINED_SYMBOL,
+  ERRNO_DEFINED_SYMBOL_CONFLICT,
   ERRNO_SIZE
 };
 
@@ -59,6 +63,8 @@ class Error : public std::exception {
 
   static Error Success();
   friend std::ostream& operator<<(std::ostream& out, const Error& e);
+  friend llvm::raw_fd_ostream& operator<<(llvm::raw_fd_ostream& out,
+                                          const Error& e);
 };
 
 #endif  // __PL0_ERROR_H__

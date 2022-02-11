@@ -2,16 +2,21 @@
  * @Author: zhangsunbaohong
  * @Email: zhangsunbaohong@163.com
  * @Date: 2021-11-22 23:40:36
- * @LastEditTime: 2021-11-26 07:46:52
+ * @LastEditTime: 2022-02-06 18:39:59
  * @Description: llvm 样例
  */
 
 #include <llvm/ADT/PackedVector.h>
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Module.h>
+#include <llvm/IR/Verifier.h>
 #include <llvm/Support/Casting.h>
 #include <llvm/Support/ExtensibleRTTI.h>
 #include <llvm/Support/FormatVariadic.h>
 
 #include <iostream>
+#include <memory>
 
 class A : public llvm::RTTIExtends<A, llvm::RTTIRoot> {
  public:
@@ -69,10 +74,39 @@ void FormatExample() {
             << std::endl;
 }
 
+void LLVMMainExample() {
+  // Open a new context and module.
+  std::unique_ptr<llvm::LLVMContext> TheContext =
+      std::make_unique<llvm::LLVMContext>();
+  std::unique_ptr<llvm::Module> TheModule =
+      std::make_unique<llvm::Module>("pl0 main module", *TheContext);
+
+  // Create a new builder for the module.
+  std::unique_ptr<llvm::IRBuilder<>> Builder =
+      std::make_unique<llvm::IRBuilder<>>(*TheContext);
+  std::vector<llvm::Type*> Args;
+  llvm::FunctionType* FT =
+      llvm::FunctionType::get(llvm::Type::getVoidTy(*TheContext), Args, false);
+  llvm::Function* F = llvm::Function::Create(
+      FT, llvm::Function::ExternalLinkage, "main", TheModule.get());
+  // Create a new basic block to start insertion into.
+  llvm::BasicBlock* BB =
+      llvm::BasicBlock::Create(*TheContext, "module entry", F);
+  Builder->SetInsertPoint(BB);  // Print out all of the generated code.
+  llvm::Value* V = Builder->CreateFAdd(
+      llvm::ConstantFP::get(*TheContext, llvm::APFloat(4.3)),
+      llvm::ConstantFP::get(*TheContext, llvm::APFloat(2.3)));
+  Builder->CreateBr(BB);
+  Builder->CreateRet(nullptr);
+  llvm::verifyFunction(*F);
+  TheModule->print(llvm::outs(), nullptr);
+}
+
 int main() {
-  std::cout << "llvm useful api example!" << std::endl;
-  RTTIExample();
-  FormatExample();
-  PackedVectorExample();
+  // std::cout << "llvm useful api example!" << std::endl;
+  // RTTIExample();
+  // FormatExample();
+  // PackedVectorExample();
+  LLVMMainExample();
   return 0;
 }

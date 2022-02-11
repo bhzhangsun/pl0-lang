@@ -2,7 +2,7 @@
  * @Author: zhangsunbaohong
  * @Email: zhangsunbaohong@163.com
  * @Date: 2021-10-12 07:59:47
- * @LastEditTime: 2022-01-22 23:46:55
+ * @LastEditTime: 2022-02-03 10:03:03
  * @Description: Token类，表示词法单元
  */
 #if !defined(__PL0_TOKEN_H__)
@@ -48,6 +48,7 @@ enum Tag {
   NUMBER,            // 数字
   IDENTIFIER,        // 标识符
   PESUDO,            // 伪标签
+  UNINIT,            // 未初始化
 };
 
 /**

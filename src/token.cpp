@@ -2,7 +2,7 @@
  * @Author: zhangsunbaohong
  * @Email: zhangsunbaohong@163.com
  * @Date: 2021-10-21 00:09:40
- * @LastEditTime: 2021-12-13 22:40:27
+ * @LastEditTime: 2022-02-03 10:04:23
  * @Description:
  */
 
@@ -28,8 +28,10 @@ void Token::GetType() {
   std::transform(value.begin(), value.end(), lower_value.begin(), ::tolower);
   if (value2idx.count(lower_value) > 0) {
     type = Tag(value2idx[lower_value]);
-  } else {
+  } else if (value.length()) {
     type = isdigit(value[0]) ? Tag::NUMBER : Tag::IDENTIFIER;
+  } else {
+    type = Tag::UNINIT;
   }
 }
 Token::operator bool() { return value != ""; }
