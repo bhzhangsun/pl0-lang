@@ -2,7 +2,7 @@
  * @Author: zhangsunbaohong
  * @Email: zhangsunbaohong@163.com
  * @Date: 2022-02-02 10:08:19
- * @LastEditTime: 2022-02-11 07:06:21
+ * @LastEditTime: 2022-03-23 08:26:42
  * @Description: Compiler
  */
 
@@ -15,6 +15,7 @@
 #include <llvm/Transforms/InstCombine/InstCombine.h>
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Transforms/Scalar/GVN.h>
+#include <llvm/Transforms/Utils.h>
 
 #include <cstdio>
 #include <memory>
@@ -26,8 +27,8 @@ std::unique_ptr<llvm::Module> TheModule;
 std::unique_ptr<llvm::IRBuilder<>> Builder;
 std::unique_ptr<llvm::orc::Pl0JIT> TheJIT;
 std::unique_ptr<llvm::legacy::FunctionPassManager> TheFPM;
-std::map<std::string, llvm::Value *> ConstantValues;
-std::map<std::string, llvm::AllocaInst *> MutableValues;
+std::map<std::string, llvm::Value *> GlobalValues;
+std::map<std::string, llvm::AllocaInst *> LocalValues;
 
 void InitializeEntryModuleAndPassManager() {
   // Open a new context and module.
@@ -37,21 +38,13 @@ void InitializeEntryModuleAndPassManager() {
   // Create a new builder for the module.
   Builder = std::make_unique<llvm::IRBuilder<>>(*TheContext);
 
-  llvm::FunctionType *FT =
-      llvm::FunctionType::get(llvm::Type::getVoidTy(*TheContext), false);
-  llvm::Function *F = llvm::Function::Create(
-      FT, llvm::Function::ExternalLinkage, "module_entry", TheModule.get());
-  // Create a new basic block to start insertion into.
-  llvm::BasicBlock *BB = llvm::BasicBlock::Create(*TheContext, "entry", F);
-  Builder->SetInsertPoint(BB);
-
   // scand
   std::vector<llvm::Type *> ArgsType;
   ArgsType.push_back(llvm::Type::getDoublePtrTy(*TheContext));
-  FT = llvm::FunctionType::get(llvm::Type::getVoidTy(*TheContext), ArgsType,
-                               false);
-  F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage, "scand",
-                             *TheModule);
+  llvm::FunctionType *FT = llvm::FunctionType::get(
+      llvm::Type::getVoidTy(*TheContext), ArgsType, false);
+  llvm::Function *F = llvm::Function::Create(
+      FT, llvm::Function::ExternalLinkage, "scand", *TheModule);
 
   // printd
   ArgsType.clear();
@@ -65,6 +58,8 @@ void InitializeEntryModuleAndPassManager() {
   // Create a new pass manager attached to it.
   TheFPM = std::make_unique<llvm::legacy::FunctionPassManager>(TheModule.get());
 
+  // Promote allocas to registers.
+  TheFPM->add(llvm::createPromoteMemoryToRegisterPass());
   // Do simple "peephole" optimizations and bit-twiddling optzns.
   TheFPM->add(llvm::createInstructionCombiningPass());
   // Reassociate expressions.
@@ -83,8 +78,8 @@ void Release() {
   Builder.release();
   TheJIT.release();
   TheFPM.release();
-  ConstantValues.clear();
-  MutableValues.clear();
+  GlobalValues.clear();
+  LocalValues.clear();
 }
 
 /// scand - scand that takes a double

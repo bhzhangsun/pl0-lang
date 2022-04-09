@@ -3,21 +3,30 @@ cmake_minimum_required(VERSION 3.0)
 # set(CMAKE_TOOLCHAIN_FILE $ENV{VCPKG_HOME}/scripts/buildsystems/vcpkg.cmake)
 project(pl0-lang)
 
-# find_path(CATCH_INCLUDE_DIR catch.hpp)
-# include_directories(${CATCH_INCLUDE_DIR})
+add_definitions(-DNDEBUG)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 14)
 find_package(LLVM CONFIG REQUIRED)
 include_directories(${LLVM_INCLUDE_DIRS})
 
+SET(CMAKE_BUILD_TYPE "Debug")
+
+set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -g")
+set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")
 
 include_directories(include)
 aux_source_directory(src SRC)
 add_library(plang STATIC ${SRC})
 
-add_subdirectory(example)
+# add_subdirectory(example)
+add_subdirectory(tools)
 
+# find_path(CATCH_INCLUDE_DIR catch.hpp)
+# include_directories(${CATCH_INCLUDE_DIR})
 find_package(Catch2 CONFIG REQUIRED)
 enable_testing()
 add_subdirectory(test)
+# add_subdirectory(pass)
+
+
 

@@ -2,7 +2,7 @@
  * @Author: zhangsunbaohong
  * @Email: zhangsunbaohong@163.com
  * @Date: 2021-10-12 07:59:47
- * @LastEditTime: 2022-01-26 08:30:29
+ * @LastEditTime: 2022-02-14 22:18:20
  * @Description: Lexer词法分析器
  */
 #if !defined(__PL0_LEXER_H__)
@@ -40,7 +40,9 @@ class Lexer {
     }
     itor_ = token_stream_.begin();
   };
-  Lexer(std::string &in) : raw_stream_() { itor_ = token_stream_.begin(); }
+  Lexer(const std::shared_ptr<std::istream> &inptr) : raw_stream_(inptr) {
+    itor_ = token_stream_.begin();
+  }
 
   ~Lexer() = default;
   token_buffer &token_stream() { return token_stream_; }

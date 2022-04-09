@@ -2,7 +2,7 @@
  * @Author: zhangsunbaohong
  * @Email: zhangsunbaohong@163.com
  * @Date: 2021-10-22 08:34:07
- * @LastEditTime: 2022-02-07 08:27:45
+ * @LastEditTime: 2022-03-14 21:37:04
  * @Description: ExprAst.h 定义最小语义单元结构，他是组成Ast的结点
  */
 
@@ -50,24 +50,47 @@ class NamedExpr : public llvm::RTTIExtends<NamedExpr, ExprAst> {
   llvm::Value *Codegen(bool isLhs = false) const override;
 };
 
-class ConstExpr : public llvm::RTTIExtends<ConstExpr, ExprAst> {
+// class ConstExpr : public llvm::RTTIExtends<ConstExpr, ExprAst> {
+//  private:
+//   std::map<std::string, double> consts_;
+
+//  public:
+//   static char ID;
+//   void AddConstant(const std::string &key, double value);
+//   llvm::Value *Codegen(bool isLhs = false) const override;
+// };
+
+// class VariableExpr : public llvm::RTTIExtends<VariableExpr, ExprAst> {
+//  private:
+//   std::set<std::string> vars_;
+
+//  public:
+//   static char ID;
+//   void AddVariant(const std::string &key);
+//   llvm::Value *Codegen(bool isLhs = false) const override;
+// };
+
+class GlobalVariableExpr
+    : public llvm::RTTIExtends<GlobalVariableExpr, ExprAst> {
  private:
-  std::map<std::string, double> consts_;
+  std::map<std::string, std::pair<double, bool>> vars_;
 
  public:
   static char ID;
-  void AddConstant(const std::string &key, double value);
+  void AddGlobalVariable(const std::string &key, double value, bool isConst);
   llvm::Value *Codegen(bool isLhs = false) const override;
+  bool empty() { return vars_.empty(); }
 };
 
-class VariableExpr : public llvm::RTTIExtends<VariableExpr, ExprAst> {
+class LocalVariableExpr : public llvm::RTTIExtends<LocalVariableExpr, ExprAst> {
  private:
-  std::set<std::string> vars_;
+  std::map<std::string, std::pair<double, bool>> vars_;
 
  public:
   static char ID;
-  void AddVariant(const std::string &key);
+  void AddLocalVariable(const std::string &key, double value, bool isConst);
   llvm::Value *Codegen(bool isLhs = false) const override;
+  bool empty() { return vars_.empty(); }
 };
 
 class BinaryOpExpr : public llvm::RTTIExtends<BinaryOpExpr, ExprAst> {

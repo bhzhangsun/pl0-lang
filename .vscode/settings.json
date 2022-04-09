@@ -11,6 +11,9 @@
     "cmake.configureArgs": [
         "-DCMAKE_TOOLCHAIN_FILE=${env:VCPKG_HOME}/scripts/buildsystems/vcpkg.cmake"
     ],
+    "terminal.integrated.env.osx": {
+        "PATH": "${workspaceFolder}/build/vcpkg_installed/x64-osx/tools/llvm:${env:PATH}"
+    },
     "files.associations": {
         "*.cjson": "jsonc",
         "*.wxss": "css",
@@ -100,6 +103,11 @@
         "strstream": "cpp",
         "__memory": "cpp",
         "filesystem": "cpp",
-        "*.inc": "cpp"
+        "*.inc": "cpp",
+        "*.def": "cpp",
+        "compare": "cpp",
+        "concepts": "cpp",
+        "memory_resource": "cpp",
+        "__functional_03": "cpp"
     }
 }

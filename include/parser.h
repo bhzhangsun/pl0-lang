@@ -2,7 +2,7 @@
  * @Author: zhangsunbaohong
  * @Email: zhangsunbaohong@163.com
  * @Date: 2021-10-22 08:21:23
- * @LastEditTime: 2022-02-06 16:07:11
+ * @LastEditTime: 2022-03-14 21:33:59
  * @Description:
  */
 
@@ -10,7 +10,10 @@
 #define __PL0_PARSER_H__
 
 #include <list>
+#include <map>
 #include <memory>
+#include <set>
+#include <string>
 
 #include "error.h"
 #include "expr_ast.h"
@@ -32,9 +35,7 @@ class Parser {
   bool Codegen();
 
  private:
-  std::shared_ptr<ExprAst> ParseBlock();
-  std::shared_ptr<ExprAst> ParseConstDefine();
-  std::shared_ptr<ExprAst> ParseVarDefine();
+  std::shared_ptr<ExprAst> ParseBlock(bool global = false);
   std::shared_ptr<ExprAst> ParseFuncDefine();
   std::shared_ptr<ExprAst> ParseStatment();
   std::shared_ptr<ExprAst> ParseAssignment();
@@ -48,6 +49,9 @@ class Parser {
   std::shared_ptr<ExprAst> ParseExprssion();
   std::shared_ptr<ExprAst> ParseTerm();
   std::shared_ptr<ExprAst> ParseFactor();
+
+  std::map<std::string, double> ParseConstDefine();
+  std::set<std::string> ParseVarDefine();
 
   void NoAvailableToken();
 };

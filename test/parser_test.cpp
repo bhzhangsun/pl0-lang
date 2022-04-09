@@ -2,7 +2,7 @@
  * @Author: zhangsunbaohong
  * @Email: zhangsunbaohong@163.com
  * @Date: 2022-01-04 09:35:17
- * @LastEditTime: 2022-02-11 07:06:40
+ * @LastEditTime: 2022-03-16 23:05:03
  * @Description: Parser 单元测试
  */
 
@@ -52,14 +52,14 @@ int test_irgen_expr() {
   InitializeEntryModuleAndPassManager();
 
   parser.Codegen();
-  for (auto named : ConstantValues) {
-    std::cout << "first: " << named.first << ", second:" << named.second
-              << std::endl;
-  }
-  for (auto named : MutableValues) {
-    std::cout << "first: " << named.first << ", second:" << named.second
-              << std::endl;
-  }
+  // for (auto named : ConstantValues) {
+  //   std::cout << "first: " << named.first << ", second:" << named.second
+  //             << std::endl;
+  // }
+  // for (auto named : MutableValues) {
+  //   std::cout << "first: " << named.first << ", second:" << named.second
+  //             << std::endl;
+  // }
   // Print out all of the generated code.
   TheModule->print(llvm::errs(), nullptr);
   return 0;
@@ -67,7 +67,8 @@ int test_irgen_expr() {
 
 int test_irgen_function() {
   Lexer lex(
-      "const x = 8;var y; procedure func; const x = 9;var y; y := x;  y := x .",
+      "const x = 8;var k; procedure func; const z = 9; var y; k := x;  k := x "
+      ".",
       Lexer::MODE_CONTENT);
   REQUIRE(lex.Tokenization() == true);
   Parser parser(lex);
@@ -108,10 +109,22 @@ int test_irgen_flow() {
 // "then !2; if 1.1 < 1 then !3; if 1.1 # 1 then !4; if 1.1 >= 1 then !5; "
 // "if 1.1 <= 1 then !6 end ."
 
+// while
+// "const x = 8;var y,z,j; begin ?y; while odd y do begin j := 3; !3+3 + x; "
+// "y := y - 1; !y end end ."
+
+// call
+// "const x = 8;var y; procedure func; const x = 9;var y; begin y := x; "
+// "!y end; begin  y := x; ?y; !y+x; call func end ."
+
 int test_irgen_jit() {
   Lexer lex(
-      "const x = 8;var y,z,j; begin ?y; while odd y do begin j := 3; !3+3 + x; "
-      "y := y - 1; !y end end .",
+      "VAR x, squ;"
+      "PROCEDURE square;"
+      "BEGIN squ:= x * x END;"
+      "BEGIN x:= 1;"
+      "WHILE x <= 10 DO BEGIN CALL square; !squ; "
+      "x:= x + 1 END END.",
       Lexer::MODE_CONTENT);
   REQUIRE(lex.Tokenization() == true);
   Parser parser(lex);
@@ -125,7 +138,7 @@ int test_irgen_jit() {
   TheModule->setDataLayout(TheJIT->getTargetMachine().createDataLayout());
 
   parser.Codegen();
-  Builder->CreateRet(nullptr);
+
   // Print out all of the generated code.
   TheModule->print(llvm::errs(), nullptr);
 

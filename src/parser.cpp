@@ -2,15 +2,19 @@
  * @Author: zhangsunbaohong
  * @Email: zhangsunbaohong@163.com
  * @Date: 2021-12-08 09:18:11
- * @LastEditTime: 2022-02-10 09:08:49
+ * @LastEditTime: 2022-03-14 21:34:51
  * @Description: Parser 语法解析器
  */
 
 #include "parser.h"
 
 #include <iostream>
+#include <map>
 #include <memory>
+#include <set>
+#include <string>
 
+#include "compiler.h"
 #include "error.h"
 #include "expr_ast.h"
 #include "lexer.h"
@@ -18,7 +22,7 @@
 #include "token.h"
 
 bool Parser::Parsing() {
-  root_ = ParseBlock();
+  root_ = ParseBlock(true);
   Lexer::token_iterator current = lex_.next();
 
   if (lex_.eof(current)) {
@@ -45,18 +49,41 @@ bool Parser::Parsing() {
  * @param {*}
  * @return {*} AST节点指针
  */
-std::shared_ptr<ExprAst> Parser::ParseBlock() {
+std::shared_ptr<ExprAst> Parser::ParseBlock(bool global) {
   std::unique_ptr<PesudoExpr> block_ptr = std::make_unique<PesudoExpr>();
 
   // 处每次以;作为一个单元外，若开始的符号是DOT则认为是程序结尾
-
+  std::map<std::string, double> consts;
   Lexer::token_iterator current = lex_.peek();
   if (!lex_.eof(current) && current->type == Tag::KEYWORD_CONST) {
-    block_ptr->AddChild(ParseConstDefine());
+    consts = ParseConstDefine();
   }
   current = lex_.peek();
+  std::set<std::string> vars;
   if (!lex_.eof(current) && current->type == Tag::KEYWORD_VAR) {
-    block_ptr->AddChild(ParseVarDefine());
+    vars = ParseVarDefine();
+  }
+
+  if (global) {
+    std::shared_ptr<GlobalVariableExpr> global_ptr =
+        std::make_shared<GlobalVariableExpr>();
+    for (auto it : consts) {
+      global_ptr->AddGlobalVariable(it.first, it.second, true);
+    }
+    for (auto it : vars) {
+      global_ptr->AddGlobalVariable(it, 0, false);
+    }
+    if (!global_ptr->empty()) block_ptr->AddChild(global_ptr);
+  } else {
+    std::shared_ptr<LocalVariableExpr> local_ptr =
+        std::make_shared<LocalVariableExpr>();
+    for (auto it : consts) {
+      local_ptr->AddLocalVariable(it.first, it.second, true);
+    }
+    for (auto it : vars) {
+      local_ptr->AddLocalVariable(it, 0, false);
+    }
+    if (!local_ptr->empty()) block_ptr->AddChild(local_ptr);
   }
 
   while (!lex_.eof(lex_.peek()) && lex_.peek()->type == Tag::KEYWORD_PROC) {
@@ -73,8 +100,8 @@ std::shared_ptr<ExprAst> Parser::ParseBlock() {
  * @param {*}
  * @return {*}
  */
-std::shared_ptr<ExprAst> Parser::ParseConstDefine() {
-  std::unique_ptr<ConstExpr> const_ptr = std::make_unique<ConstExpr>();
+std::map<std::string, double> Parser::ParseConstDefine() {
+  std::map<std::string, double> consts;
   Lexer::token_iterator current = lex_.next();  // const
   bool first = true;
   do {
@@ -99,7 +126,7 @@ std::shared_ptr<ExprAst> Parser::ParseConstDefine() {
       errors_.push_back(
           Error(ERRNO::ERRNO_REQUIRE_NUMBER, ident->line, eq->value));
     } else {
-      const_ptr->AddConstant(ident->value, std::stod(val->value));
+      consts[ident->value] = std::stod(val->value);
     }
 
   } while (!lex_.eof(lex_.peek()) && lex_.peek()->type != Tag::SYMBOL_SEMI);
@@ -109,7 +136,7 @@ std::shared_ptr<ExprAst> Parser::ParseConstDefine() {
         Error(ERRNO::ERRNO_REQUIRE_SEMI, (--lex_.peek())->line, "EOF"));
   }
   lex_.next();  // 吃掉;
-  return const_ptr;
+  return consts;
 }
 
 /**
@@ -117,8 +144,8 @@ std::shared_ptr<ExprAst> Parser::ParseConstDefine() {
  * @param {*}
  * @return {*}
  */
-std::shared_ptr<ExprAst> Parser::ParseVarDefine() {
-  std::unique_ptr<VariableExpr> var_ptr = std::make_unique<VariableExpr>();
+std::set<std::string> Parser::ParseVarDefine() {
+  std::set<std::string> vars;
   Lexer::token_iterator current = lex_.next();  // var
   bool first = true;
   do {
@@ -136,7 +163,7 @@ std::shared_ptr<ExprAst> Parser::ParseVarDefine() {
       errors_.push_back(
           Error(ERRNO::ERRNO_REQUIRE_IDENTITY, ident->line, ident->value));
     } else {
-      var_ptr->AddVariant(ident->value);
+      vars.insert(ident->value);
     }
   } while (!lex_.eof(lex_.peek()) && lex_.peek()->type != Tag::SYMBOL_SEMI);
   if (lex_.eof(lex_.peek())) {
@@ -144,7 +171,7 @@ std::shared_ptr<ExprAst> Parser::ParseVarDefine() {
         Error(ERRNO::ERRNO_REQUIRE_SEMI, (--lex_.peek())->line, "EOF"));
   }
   lex_.next();
-  return var_ptr;
+  return vars;
 }
 
 /**
@@ -158,7 +185,7 @@ std::shared_ptr<ExprAst> Parser::ParseFuncDefine() {
 
   auto ident = lex_.next();
   auto semi = lex_.next();
-  std::shared_ptr<ExprAst> block_ptr = ParseBlock();
+  std::shared_ptr<ExprAst> block_ptr = ParseBlock(false);
 
   auto semi1 = lex_.next();
 
@@ -495,8 +522,16 @@ void Parser::NoAvailableToken() {
 
 bool Parser::Codegen() {
   try {
+    llvm::FunctionType *FT =
+        llvm::FunctionType::get(llvm::Type::getVoidTy(*TheContext), false);
+    llvm::Function *F = llvm::Function::Create(
+        FT, llvm::Function::ExternalLinkage, "module_entry", TheModule.get());
+    // Create a new basic block to start insertion into.
+    llvm::BasicBlock *BB = llvm::BasicBlock::Create(*TheContext, "entry", F);
+    Builder->SetInsertPoint(BB);
     root_->Codegen();
-  } catch (const std::exception& e) {
+    Builder->CreateRet(nullptr);
+  } catch (const std::exception &e) {
     return false;
   }
   return true;

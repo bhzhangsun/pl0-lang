@@ -2,7 +2,7 @@
  * @Author: zhangsunbaohong
  * @Email: zhangsunbaohong@163.com
  * @Date: 2022-02-02 09:42:22
- * @LastEditTime: 2022-02-10 22:44:16
+ * @LastEditTime: 2022-03-14 22:33:03
  * @Description: Compiler
  */
 
@@ -26,8 +26,8 @@ extern std::unique_ptr<llvm::Module> TheModule;
 extern std::unique_ptr<llvm::orc::Pl0JIT> TheJIT;
 extern std::unique_ptr<llvm::legacy::FunctionPassManager> TheFPM;
 extern std::unique_ptr<llvm::IRBuilder<>> Builder;
-extern std::map<std::string, llvm::Value *> ConstantValues;
-extern std::map<std::string, llvm::AllocaInst *> MutableValues;
+extern std::map<std::string, llvm::Value *> GlobalValues;
+extern std::map<std::string, llvm::AllocaInst *> LocalValues;
 
 void InitializeEntryModuleAndPassManager();
 void Release();

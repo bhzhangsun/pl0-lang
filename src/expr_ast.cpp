@@ -2,12 +2,13 @@
  * @Author: zhangsunbaohong
  * @Email: zhangsunbaohong@163.com
  * @Date: 2021-12-09 22:18:54
- * @LastEditTime: 2022-02-10 22:48:48
+ * @LastEditTime: 2022-03-16 23:05:50
  * @Description: Expr_Ast实现
  */
 
 #include "expr_ast.h"
 
+#include <llvm-c/Core.h>
 #include <llvm/IR/BasicBlock.h>
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/Function.h>
@@ -26,8 +27,10 @@
 char ExprAst::ID = 0;
 char NumberExpr::ID = 0;
 char NamedExpr::ID = 0;
-char ConstExpr::ID = 0;
-char VariableExpr::ID = 0;
+// char ConstExpr::ID = 0;
+// char VariableExpr::ID = 0;
+char GlobalVariableExpr::ID = 0;
+char LocalVariableExpr::ID = 0;
 char BinaryOpExpr::ID = 0;
 char UnaryOpExpr::ID = 0;
 char PesudoExpr::ID = 0;
@@ -47,44 +50,92 @@ llvm::Value *NumberExpr::Codegen(bool isLhs) const {
 llvm::Value *NamedExpr::Codegen(bool isLhs) const {
   // Look this variable up in the function.
   llvm::Value *V = nullptr;
-  if (!isLhs && ConstantValues.count(name_) > 0) {
-    V = ConstantValues[name_];
-  } else if (MutableValues.count(name_) > 0) {
-    if (isLhs) {
-      V = MutableValues[name_];
-    } else {
-      V = Builder->CreateLoad(MutableValues[name_]);
-    }
-  } else {
+  if (LocalValues.count(name_) > 0) {
+    V = LocalValues[name_];
+  }
+  if (V == nullptr) {
+    V = TheModule->getGlobalVariable(name_);
+    // V = GlobalValues[name_];
+    // llvm::outs() << V << "\n";
+  }
+  if (V != nullptr && !isLhs) {
+    V = Builder->CreateLoad(V);
+  }
+  if (V == nullptr) {
     llvm::errs() << Error(ERRNO_NOTFOUND_DEFINED_SYMBOL, name_);
   }
   return V;
 }
 
-llvm::Value *ConstExpr::Codegen(bool isLhs) const {
-  assert(!isLhs);
-  for (auto child : consts_) {
-    if (ConstantValues.count(child.first) > 0 ||
-        MutableValues.count(child.first) > 0) {
-      llvm::errs() << Error(ERRNO_DEFINED_SYMBOL_CONFLICT, child.first);
-    }
-    ConstantValues[child.first] =
-        llvm::ConstantFP::get(*TheContext, llvm::APFloat(child.second));
-  }
-  return nullptr;
+// llvm::Value *ConstExpr::Codegen(bool isLhs) const {
+//   assert(!isLhs);
+//   for (auto child : consts_) {
+//     if (ConstantValues.count(child.first) > 0 ||
+//         MutableValues.count(child.first) > 0) {
+//       llvm::errs() << Error(ERRNO_DEFINED_SYMBOL_CONFLICT, child.first);
+//     }
+//     ConstantValues[child.first] =
+//         llvm::ConstantFP::get(*TheContext, llvm::APFloat(child.second));
+//   }
+//   return nullptr;
+// }
+
+// llvm::Value *VariableExpr::Codegen(bool isLhs) const {
+//   assert(!isLhs);
+//   for (auto var : vars_) {
+//     if (MutableValues.count(var) > 0 || ConstantValues.count(var) > 0) {
+//       llvm::errs() << Error(ERRNO_DEFINED_SYMBOL_CONFLICT, var);
+//     }
+
+//     MutableValues[var] = Builder->CreateAlloca(
+//         llvm::Type::getDoubleTy(*TheContext), nullptr, var);
+//   }
+//   return nullptr;
+// }
+
+void GlobalVariableExpr::AddGlobalVariable(const std::string &key, double value,
+                                           bool isConst) {
+  vars_[key] = std::make_pair(value, isConst);
 }
 
-llvm::Value *VariableExpr::Codegen(bool isLhs) const {
+llvm::Value *GlobalVariableExpr::Codegen(bool isLhs) const {
   assert(!isLhs);
+  llvm::Value *resptr = nullptr;
   for (auto var : vars_) {
-    if (MutableValues.count(var) > 0 || ConstantValues.count(var) > 0) {
-      llvm::errs() << Error(ERRNO_DEFINED_SYMBOL_CONFLICT, var);
-    }
-
-    MutableValues[var] = Builder->CreateAlloca(
-        llvm::Type::getDoubleTy(*TheContext), nullptr, var);
+    // resptr = new llvm::GlobalVariable(
+    //     llvm::Type::getDoubleTy(*TheContext), var.second.second,
+    //     llvm::GlobalVariable::LinkageTypes::ExternalLinkage,
+    //     llvm::ConstantFP::get(*TheContext, llvm::APFloat(var.second.first)),
+    //     var.first);
+    auto varptr = llvm::cast<llvm::GlobalVariable>(TheModule->getOrInsertGlobal(
+        var.first, llvm::Type::getDoubleTy(*TheContext)));
+    varptr->setConstant(var.second.second);
+    varptr->setLinkage(llvm::GlobalVariable::LinkageTypes::ExternalLinkage);
+    varptr->setInitializer(
+        llvm::ConstantFP::get(*TheContext, llvm::APFloat(var.second.first)));
+    GlobalValues[var.first] = varptr;
+    resptr = varptr;
   }
-  return nullptr;
+  return resptr;
+}
+
+void LocalVariableExpr::AddLocalVariable(const std::string &key, double value,
+                                         bool isConst) {
+  vars_[key] = std::make_pair(value, isConst);
+}
+
+llvm::Value *LocalVariableExpr::Codegen(bool isLhs) const {
+  assert(!isLhs);
+  llvm::Value *resptr = nullptr;
+  for (auto var : vars_) {
+    auto instptr = Builder->CreateAlloca(llvm::Type::getDoubleTy(*TheContext),
+                                         nullptr, var.first);
+    LocalValues[var.first] = instptr;
+    resptr = Builder->CreateStore(
+        llvm::ConstantFP::get(*TheContext, llvm::APFloat(var.second.first)),
+        instptr);
+  }
+  return resptr;
 }
 
 llvm::Value *UnaryOpExpr::Codegen(bool isLhs) const { return nullptr; }
@@ -137,8 +188,8 @@ llvm::Value *FunctionExpr::Codegen(bool isLhs) const {
 
   // 保存上下文相关变量
   llvm::BasicBlock *_BB = Builder->GetInsertBlock();
-  std::map<std::string, llvm::Value *> Consts = ConstantValues;
-  std::map<std::string, llvm::AllocaInst *> Mutables = MutableValues;
+  // std::map<std::string, llvm::Value *> Consts = ConstantValues;
+  // std::map<std::string, llvm::AllocaInst *> Mutables = MutableValues;
 
   llvm::FunctionType *FT = llvm::FunctionType::get(
       llvm::FunctionType::getVoidTy(*TheContext), false);
@@ -153,12 +204,15 @@ llvm::Value *FunctionExpr::Codegen(bool isLhs) const {
   Builder->CreateRet(nullptr);
   llvm::verifyFunction(*F);
 
+  // Print out all of the generated code.
+  // TheModule->print(llvm::errs(), nullptr);
   // Optimize the function.
   TheFPM->run(*F);
 
   // 恢复上下文相关变量
-  ConstantValues = Consts;
-  MutableValues = Mutables;
+  // ConstantValues = Consts;
+  // MutableValues = Mutables;
+  LocalValues.clear();
   Builder->SetInsertPoint(_BB);
   return F;
 }
@@ -171,7 +225,7 @@ llvm::Value *CallExpr::Codegen(bool isLhs) const {
     llvm::errs() << Error(ERRNO_NOTFOUND_DEFINED_SYMBOL, name_);
     return nullptr;
   }
-  return Builder->CreateCall(F, llvm::None, "calltmp");
+  return Builder->CreateCall(F);
 }
 
 llvm::Value *OddExpr::Codegen(bool isLhs) const {
@@ -222,6 +276,7 @@ llvm::Value *IfExpr::Codegen(bool isLhs) const {
   Builder->SetInsertPoint(MBB);
   return nullptr;
 }
+
 llvm::Value *WhileExpr::Codegen(bool isLhs) const {
   assert(!isLhs);
 
@@ -244,21 +299,21 @@ llvm::Value *WhileExpr::Codegen(bool isLhs) const {
   return nullptr;
 }
 
-void ConstExpr::AddConstant(const std::string &key, double value) {
-  if (consts_.count(key) > 0) {
-    llvm::errs() << Error(ERRNO_DEFINED_SYMBOL_CONFLICT, key);
-  } else {
-    consts_[key] = value;
-  }
-}
+// void ConstExpr::AddConstant(const std::string &key, double value) {
+//   if (consts_.count(key) > 0) {
+//     llvm::errs() << Error(ERRNO_DEFINED_SYMBOL_CONFLICT, key);
+//   } else {
+//     consts_[key] = value;
+//   }
+// }
 
-void VariableExpr::AddVariant(const std::string &key) {
-  if (vars_.count(key) > 0) {
-    llvm::errs() << Error(ERRNO_DEFINED_SYMBOL_CONFLICT, key);
-  } else {
-    vars_.insert(key);
-  }
-}
+// void VariableExpr::AddVariant(const std::string &key) {
+//   if (vars_.count(key) > 0) {
+//     llvm::errs() << Error(ERRNO_DEFINED_SYMBOL_CONFLICT, key);
+//   } else {
+//     vars_.insert(key);
+//   }
+// }
 
 void PesudoExpr::AddChild(const std::shared_ptr<ExprAst> &child) {
   if (child != nullptr) {

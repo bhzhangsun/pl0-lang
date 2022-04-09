@@ -1,4 +1,3 @@
-add_definitions(-DNDEBUG)
 llvm_map_components_to_libnames(llvm_link_libs core support orcjit native )
 
 add_executable(lexer_test lexer_test.cpp)
@@ -18,3 +17,12 @@ add_test(
   COMMAND $<TARGET_FILE:parser_test> --success
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
+
+add_executable(cc_operation cc_driver.cpp operation.o)
+target_link_libraries(cc_operation ${llvm_link_libs} plang)
+
+add_executable(cc_prime cc_driver.cpp prime.o)
+target_link_libraries(cc_prime ${llvm_link_libs} plang)
+
+add_executable(cc_square cc_driver.cpp square.o)
+target_link_libraries(cc_square ${llvm_link_libs} plang)
