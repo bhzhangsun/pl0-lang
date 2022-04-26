@@ -2,7 +2,7 @@
  * @Author: zhangsunbaohong
  * @Email: zhangsunbaohong@163.com
  * @Date: 2021-10-12 07:59:47
- * @LastEditTime: 2022-02-27 19:45:07
+ * @LastEditTime: 2022-04-26 21:42:36
  * @Description:
 -->
 
@@ -60,9 +60,11 @@ pl0 是一个类 pascal 语言, 该编译器使用 C++语言完成，从词法�
 - cd build
 - cmake ..
 - make
-- ./pl0 "filepath"
+- ./tools/cc -o outfile -c filepath
 - "exec the program"
 - make clean
+
+test 目录下的 cc_driver.cpp 与 cc 编译出的对象文件链接后即可获得可执行文件
 
 ## LICENSE
 
