@@ -5,13 +5,6 @@
  * @LastEditTime: 2021-10-19 23:35:02
  * @Description:
  */
-/*
- * @Author: zhangsunbaohong
- * @Email: zhangsunbaohong@163.com
- * @Date: 2021-10-19 22:26:59
- * @LastEditTime: 2021-10-19 22:31:48
- * @Description:
- */
 
 #if !defined(__PL0_WORD_RECOGNIZER_H__)
 #define __PL0_WORD_RECOGNIZER_H__

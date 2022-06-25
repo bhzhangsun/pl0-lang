@@ -54,7 +54,7 @@ pl0 是一个类 pascal 语言, 该编译器使用 C++语言完成，从词法�
 ## 用法
 
 本项目使用[vcpkg](https://vcpkg.io/en/index.html)作依赖管理，使用 cmake 进行构建
-安装 vcpkg，vscode 配置 CMAKE_TOOLCHAIN_FILE=/install_path/vcpkg/scripts/buildsystems/vcpkg.
+安装 vcpkg
 
 - mkdir build
 - cd build
@@ -63,6 +63,10 @@ pl0 是一个类 pascal 语言, 该编译器使用 C++语言完成，从词法�
 - ./tools/cc -o outfile -c filepath
 - "exec the program"
 - make clean
+
+### vscode 集成：
+
+vscode 配置 CMAKE_TOOLCHAIN_FILE=/${install_path}/vcpkg/scripts/buildsystems/vcpkg.
 
 test 目录下的 cc_driver.cpp 与 cc 编译出的对象文件链接后即可获得可执行文件
 
