@@ -4,5 +4,16 @@
     "dependencies": [
         "catch2",
         "llvm"
+    ],
+    "builtin-baseline": "5241c59aa05b8d2a5218abc0d6e9de4bc6e79dc4",
+    "overrides": [
+        {
+            "name": "catch2",
+            "version": "2.13.1"
+        },
+        {
+            "name": "llvm",
+            "version": "11.0.0"
+        }
     ]
 }
